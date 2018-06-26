@@ -15,9 +15,6 @@ namespace ContentPublisherLib
         public List<PublisherInfo> Publications { get; set; }
         public List<PublisherAction> Actions { get; set; }
 
-        public StringBuilder LogText { get; set; }
-        public string LogPath { get; set; }
-
         private CurrentUserSecurity _CurrentUserSecurity { get; set; }
 
         public bool AreAllActionsSuccesful
@@ -72,26 +69,10 @@ namespace ContentPublisherLib
         }
         #endregion propsandconstructors
 
-        #region logmethods
-        public void AddToLog(string logtext)
-        {
-            if (LogText == null)
-            {
-                LogText = new StringBuilder();
-            }
-            LogText.AppendLine(logtext);
-        }
-
-        public void WriteLogToFile(string logfile)
-        {
-            if (!String.IsNullOrEmpty(logfile))
-            {
-                File.WriteAllText(logfile, LogText.ToString());
-            }
-        }
-        #endregion logmethods
-
         #region processingmethods
+        /// <summary>
+        /// Generates all actions, then does the pre-processing and then runs all actions
+        /// </summary>
         public void Run()
         {
             if (!Publications.IsNullOrEmpty())
@@ -105,7 +86,9 @@ namespace ContentPublisherLib
             }
 
         }
-
+        /// <summary>
+        /// Pre-processes all actions (orders them by type)
+        /// </summary>
         public void PreProcessActions()
         {
             List<PublisherAction> tempactions = new List<PublisherAction>();
@@ -119,7 +102,9 @@ namespace ContentPublisherLib
 
             Actions = tempactions;
         }
-
+        /// <summary>
+        /// Runs all actions
+        /// </summary>
         public void RunAllActions()
         {
             for (int i = 0; i < Actions.Count; i++)
@@ -173,6 +158,9 @@ namespace ContentPublisherLib
 
         #region actiongeneratormethods
 
+        /// <summary>
+        /// Generates all actions from PublisherActions
+        /// </summary>
         public void GenerateAllActions()
         {
             Actions = new List<PublisherAction>();
@@ -189,6 +177,10 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions for file sources
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
         public void GenerateActionsForFiles(PublisherInfo pinfo)
         {
             if (pinfo.Destinations != null)
@@ -211,6 +203,11 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is a file, and the target type is also a file
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
+        /// <param name="dest">PublisherDestination represeting the target</param>
         private void GenerateActionsForFilesToFile(PublisherInfo pinfo, PublisherDestination dest)
         {
             if (dest.Modes.Contains(PublisherTypes.PublisherMode.Archive) || pinfo.Modes.Contains(PublisherTypes.PublisherMode.Archive))
@@ -252,6 +249,11 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is file, and the target type is diretory
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
+        /// <param name="dest">PublisherDestination represeting the target</param>
         private void GenerateActionsForFilesToDirectory(PublisherInfo pinfo, PublisherDestination dest)
         {
             if (dest.Modes.Contains(PublisherTypes.PublisherMode.Archive) || pinfo.Modes.Contains(PublisherTypes.PublisherMode.Archive))
@@ -283,6 +285,11 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is file and target type is archive
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
+        /// <param name="dest">PublisherDestination represeting the target</param>
         private void GenerateActionsForFilesToArchive(PublisherInfo pinfo, PublisherDestination dest)
         {
             if (dest.Modes.Contains(PublisherTypes.PublisherMode.Overwrite) || pinfo.Modes.Contains(PublisherTypes.PublisherMode.Overwrite))
@@ -305,6 +312,10 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is directory
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
         public void GenerateActionsForDirectories(PublisherInfo pinfo)
         {
             if (pinfo.Destinations != null)
@@ -341,6 +352,11 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is directory, and only sub content is copied
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
+        /// <param name="dest">PublisherDestination represeting the target</param>
         public void GenerateActionsForDirectorySubOnly(PublisherInfo pinfo, PublisherDestination dest)
         {
             if (Directory.Exists(pinfo.SourcePath) &&
@@ -370,6 +386,11 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is directory, and the whole directory is copied
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
+        /// <param name="dest">PublisherDestination represeting the target</param>
         public void GenerateActionsForDirectoryFull(PublisherInfo pinfo, PublisherDestination dest)
         {
             if (Directory.Exists(pinfo.SourcePath) && Directory.Exists(Directory.GetParent(pinfo.SourcePath).FullName) &&
@@ -406,6 +427,11 @@ namespace ContentPublisherLib
             }
         }
 
+        /// <summary>
+        /// Generates all actions where the source type is directory, and the target type is archive
+        /// </summary>
+        /// <param name="pinfo">PublisherInfo representing the source</param>
+        /// <param name="dest">PublisherDestination represeting the target</param>
         public void GenerateActionsForDirectoryToArchive(PublisherInfo pinfo, PublisherDestination dest)
         {
             if (dest.Modes.Contains(PublisherTypes.PublisherMode.Overwrite) || pinfo.Modes.Contains(PublisherTypes.PublisherMode.Overwrite))
@@ -430,10 +456,15 @@ namespace ContentPublisherLib
 
         #endregion actiongeneratormethods
 
+        /// <summary>
+        /// Gets all actions for a given ActionResultType 
+        /// </summary>
+        /// <param name="actionType">ActionResultType for which matching actions are returned</param>
+        /// <returns>List of actions where ActionResultType matches</returns>
         public List<string> GetActionResultMessages(PublisherTypes.ActionResultType actionType)
         {
             List<string> messages = new List<string>();
-            if (this.Actions != null && (Actions.Where(w => w.Result.ResultType == actionType).Count() > 0))
+            if (Actions != null && (Actions.Where(w => w.Result.ResultType == actionType).Count() > 0))
             {
                 messages.AddRange(Actions.Where(w => w.Result.ResultType == actionType).Select(s => s.Result.ResultMessage));
             }
